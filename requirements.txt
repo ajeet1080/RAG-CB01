@@ -3,5 +3,4 @@ Flask-SQLAlchemy==2.4.4
 pyodbc==4.0.30
 flask-restful
 flask-marshmallow
-urllib
 flask-swagger-ui
