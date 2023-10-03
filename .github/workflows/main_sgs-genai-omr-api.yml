@@ -26,7 +26,7 @@ jobs:
         run: |
           python -m venv venv
           source venv/bin/activate
-          run: pip install -r requirements.txt
+          pip install -r requirements.txt
       # install ubuntu odbc 18 sql server driver
       - name: Install Ubuntu odbc 18 sql server driver
         run: |
