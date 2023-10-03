@@ -1,6 +1,5 @@
-Flask==1.1.2
-Flask-SQLAlchemy==2.4.4
-pyodbc==4.0.30
+flask
+flask-sqlalchemy
 flask-restful
 flask-marshmallow
 flask-swagger-ui
