@@ -26,9 +26,7 @@ jobs:
         run: |
           python -m venv venv
           source venv/bin/activate
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+        # run: pip install -r requirements.txt
       # install ubuntu odbc 18 sql server driver
       - name: Install Ubuntu odbc 18 sql server driver
         run: |
@@ -36,7 +34,8 @@ jobs:
           curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
-          pip install pyodbc
+      - name: Install dependency python packages
+          pip install -r requirements.txt
 
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
 

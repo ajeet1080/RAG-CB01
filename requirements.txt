@@ -1,5 +1,6 @@
 flask
-flask-sqlalchemy
+pyodbc
+flask_sqlalchemy
 flask-restful
 flask-marshmallow
 flask-swagger-ui
