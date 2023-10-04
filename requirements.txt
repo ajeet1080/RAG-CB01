@@ -1,8 +1,7 @@
 flask
 pandas
-flask-restful
-flask-marshmallow
-flask-swagger-ui
-marshmallow-sqlalchemy
+flask_restful
+flask_marshmallow
+flask_swagger_ui
+flask-sqlalchemy
 pyodbc
-flask_sqlalchemy
