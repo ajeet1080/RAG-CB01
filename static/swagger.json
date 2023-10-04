@@ -5,9 +5,9 @@
     "description": "This is API swagger documentation for SingHealth Gen AI MVP product : Medical Report Generation. Please note only sampledeidentified data is used for this MVP.",
     "version": "1.0"
   },
-  "host": "localhost:5000",
+  "host": "sgs-genai-omr-api.azurewebsites.net/",
   "basePath": "/",
-  "schemes": ["http"],
+  "schemes": ["https"],
   "paths": {
     "/emd": {
       "get": {
