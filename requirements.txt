@@ -5,4 +5,5 @@ flask-marshmallow
 flask-swagger-ui
 flask-sqlalchemy
 marshmallow-sqlalchemy
+flask_sqlalchemy
 pyodbc
