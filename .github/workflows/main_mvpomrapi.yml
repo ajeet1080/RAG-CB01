@@ -26,7 +26,7 @@ jobs:
         run: |
           python -m venv venv
           source venv/bin/activate
-          
+
       # install ubuntu odbc 18 sql server driver
       - name: Install Ubuntu odbc 18 sql server driver
         run: |
@@ -49,7 +49,7 @@ jobs:
             !venv/
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: build
     environment:
       name: "Production"
