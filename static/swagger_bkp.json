@@ -1,0 +1,133 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "SingHealth Gen AI - MVP API documentation",
+    "description": "This is API swagger documentation for SingHealth Gen AI MVP product : Medical Report Generation. Please note only sampledeidentified data is used for this MVP.",
+    "version": "1.0"
+  },
+  "host": "sgs-genai-omr-api.azurewebsites.net/",
+  "basePath": "/",
+  "schemes": ["https"],
+  "paths": {
+    "/emd": {
+      "get": {
+        "summary": "Get a list of Patient clinical records",
+        "description": "Returns a list of users",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "Patient_ID",
+            "in": "query",
+            "description": "The Patient ID",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "Case_No",
+            "in": "query",
+            "description": "Patient case number",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Institution_Code",
+            "in": "query",
+            "description": "Institution code",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Document_Name",
+            "in": "query",
+            "description": "Document Name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Document_Item_Name_Long",
+            "in": "query",
+            "description": "Document item Long Name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Left_Label",
+            "in": "query",
+            "description": "Left Item Label",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "API key"
+          },
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "default": "application/json",
+            "description": "`Content-Type` header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of users",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "EMD_ID": {
+                    "type": "integer",
+                    "description": "Unique ID"
+                  },
+                  "Patient_ID": {
+                    "type": "string",
+                    "description": "Patient ID"
+                  },
+                  "Institution_Code": {
+                    "type": "string",
+                    "description": "Institution Code"
+                  },
+                  "Case_No": {
+                    "type": "string",
+                    "description": "Institution Code"
+                  },
+                  "Document_Name": {
+                    "type": "string",
+                    "description": "Document Name"
+                  },
+                  "Document_Item_Description": {
+                    "type": "string",
+                    "description": "Docuemnt Item Description"
+                  },
+                  "Left_Label": {
+                    "type": "string",
+                    "description": "Item Left Label"
+                  },
+                  "Right_Label": {
+                    "type": "string",
+                    "description": "Item Right Label"
+                  },
+                  "Authored_Date": {
+                    "type": "date",
+                    "description": "Authored Date"
+                  },
+                  "Value_Text": {
+                    "type": "date",
+                    "description": "Authored Date"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
