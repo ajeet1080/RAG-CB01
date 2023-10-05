@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 import urllib.parse
 from flask_swagger_ui import get_swaggerui_blueprint
-
+from flask_cors import CORS
 #test
 app = Flask(__name__)
 
@@ -14,6 +14,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
+CORS(app)
 app.app_context().push()
 
 @app.route('/static/<path:path>')
@@ -94,7 +95,7 @@ emds_schema = emdSchema(many=True)
 #Create route to get all records with optional  query parameter for any Patient_ID, Case_No, Institution_Code , Document_Name,Document_Item_Name_Long and Left_Label . Also create api_key for authentication
 @app.route('/emd', methods=['GET'])
 def get_emds():
-    #api_key = request.headers.get('x-api-key')
+    api_key = request.headers.get('x-api-key')
    #fetch authentication api_key value from request as api_key 
     Case_No = request.args.get('Case_No')
     Patient_ID = request.args.get('Patient_ID')
@@ -102,22 +103,29 @@ def get_emds():
     Document_Name = request.args.get('Document_Name')
     Document_Item_Name_Long = request.args.get('Document_Item_Name_Long')
     Left_Label = request.args.get('Left_Label')
-    if Case_No is None:
-        all_emds = EMD.query.all()
-    else:
-        all_emds = EMD.query.filter_by(Case_No=Case_No)
-    if Patient_ID is not None:
-        all_emds = all_emds.filter_by(Patient_ID=Patient_ID)
-    if Institution_Code is not None:
-        all_emds = all_emds.filter_by(Institution_Code=Institution_Code)
-    if Document_Name is not None:
-        all_emds = all_emds.filter_by(Document_Name=Document_Name)
-    if Document_Item_Name_Long is not None:
-        all_emds = all_emds.filter_by(Document_Item_Name_Long=Document_Item_Name_Long)
-    if Left_Label is not None:
-        all_emds = all_emds.filter_by(Left_Label=Left_Label)
-    result = emds_schema.dump(all_emds)
-    return jsonify(result)
+    if api_key is None:
+        return jsonify(error="Missing API key"), 400
+
+    # Check if the provided API key is valid
+    if api_key not in API_KEYS.values():
+        return jsonify(error="Invalid API key"), 403  
+    else: 
+        if Case_No is None:
+            all_emds = EMD.query.all()
+        else:
+            all_emds = EMD.query.filter_by(Case_No=Case_No)
+        if Patient_ID is not None:
+            all_emds = all_emds.filter_by(Patient_ID=Patient_ID)
+        if Institution_Code is not None:
+            all_emds = all_emds.filter_by(Institution_Code=Institution_Code)
+        if Document_Name is not None:
+            all_emds = all_emds.filter_by(Document_Name=Document_Name)
+        if Document_Item_Name_Long is not None:
+            all_emds = all_emds.filter_by(Document_Item_Name_Long=Document_Item_Name_Long)
+        if Left_Label is not None:
+            all_emds = all_emds.filter_by(Left_Label=Left_Label)
+        result = emds_schema.dump(all_emds)
+        return jsonify(result)
     
 
 #@app.route('/swagger.json')
