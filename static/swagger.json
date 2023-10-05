@@ -57,6 +57,21 @@
             "description": "Left Item Label",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "API key"
+          },
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "default": "application/json",
+            "description": "`Content-Type` header"
           }
         ],
         "responses": {
