@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 import urllib.parse
 from flask_swagger_ui import get_swaggerui_blueprint
-
+from flask_cors import CORS
 #test
 app = Flask(__name__)
 
@@ -14,6 +14,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
+CORS(app)
 app.app_context().push()
 
 @app.route('/static/<path:path>')
