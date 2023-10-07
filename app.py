@@ -85,20 +85,26 @@ def get_emds():
         return jsonify(error="Invalid API key"), 403
     else:
         if Case_No is None:
-            all_emds = EMD.query.all()
+            all_emds = EMD.query.order_by(
+                EMD.Authored_Date.desc(), EMD.Document_Item_Description).all()
         else:
-            all_emds = EMD.query.filter_by(Case_No=Case_No)
+            all_emds = EMD.query.filter_by(Case_No=Case_No).order_by(
+                EMD.Authored_Date.desc(), EMD.Document_Item_Description)
         if Patient_ID is not None:
-            all_emds = all_emds.filter_by(Patient_ID=Patient_ID)
+            all_emds = all_emds.filter_by(Patient_ID=Patient_ID).order_by(
+                EMD.Authored_Date.desc(), EMD.Document_Item_Description)
         if Institution_Code is not None:
-            all_emds = all_emds.filter_by(Institution_Code=Institution_Code)
+            all_emds = all_emds.filter_by(Institution_Code=Institution_Code).order_by(
+                EMD.Authored_Date.desc(), EMD.Document_Item_Description)
         if Document_Name is not None:
-            all_emds = all_emds.filter_by(Document_Name=Document_Name)
+            all_emds = all_emds.filter_by(Document_Name=Document_Name).order_by(
+                EMD.Authored_Date.desc(), EMD.Document_Item_Description)
         if Document_Item_Name_Long is not None:
             all_emds = all_emds.filter_by(
-                Document_Item_Name_Long=Document_Item_Name_Long)
+                Document_Item_Name_Long=Document_Item_Name_Long).order_by(EMD.Authored_Date.desc(), EMD.Document_Item_Description)
         if Left_Label is not None:
-            all_emds = all_emds.filter_by(Left_Label=Left_Label)
+            all_emds = all_emds.filter_by(Left_Label=Left_Label).order_by(
+                EMD.Authored_Date.desc(), EMD.Document_Item_Description)
         result = emds_schema.dump(all_emds)
         return jsonify(result)
 
@@ -122,21 +128,26 @@ def get_lab():
         return jsonify(error="Invalid API key"), 403
     else:
         if Case_No is None:
-            all_lab = LAB.query.all()
+            all_lab = LAB.query.order_by(
+                LAB.Reported_Date.desc(), LAB.Lab_Resulted_Order_Test_Description).all()
         else:
-            all_lab = LAB.query.filter_by(Case_No=Case_No)
+            all_lab = LAB.query.filter_by(Case_No=Case_No).order_by(
+                LAB.Reported_Date.desc(), LAB.Lab_Resulted_Order_Test_Description)
         if Patient_ID is not None:
-            all_lab = all_lab.filter_by(Patient_ID=Patient_ID)
+            all_lab = all_lab.filter_by(Patient_ID=Patient_ID).order_by(
+                LAB.Reported_Date.desc(), LAB.Lab_Resulted_Order_Test_Description)
         if Institution_Code is not None:
-            all_lab = all_lab.filter_by(Institution_Code=Institution_Code)
+            all_lab = all_lab.filter_by(Institution_Code=Institution_Code).order_by(
+                LAB.Reported_Date.desc(), LAB.Lab_Resulted_Order_Test_Description)
         if Lab_Test_Code is not None:
-            all_lab = all_lab.filter_by(Lab_Test_Code=Lab_Test_Code)
+            all_lab = all_lab.filter_by(Lab_Test_Code=Lab_Test_Code).order_by(
+                LAB.Reported_Date.desc(), LAB.Lab_Resulted_Order_Test_Description)
         if Lab_Resulted_Order_Test_Code is not None:
             all_lab = all_lab.filter_by(
-                Lab_Resulted_Order_Test_Code=Lab_Resulted_Order_Test_Code)
+                Lab_Resulted_Order_Test_Code=Lab_Resulted_Order_Test_Code).order_by(LAB.Reported_Date.desc(), LAB.Lab_Resulted_Order_Test_Description)
         if Units_of_Measurement is not None:
             all_lab = all_lab.filter_by(
-                Units_of_Measurement=Units_of_Measurement)
+                Units_of_Measurement=Units_of_Measurement).order_by(LAB.Reported_Date.desc(), LAB.Lab_Resulted_Order_Test_Description)
         result = labs_schema.dump(all_lab)
         return jsonify(result)
 
@@ -160,21 +171,26 @@ def get_drugs():
         return jsonify(error="Invalid API key"), 403
     else:
         if Case_No is None:
-            all_drug = DRUG.query.all()
+            all_drug = DRUG.query.order_by(
+                DRUG.Case_Start_Date.desc(), DRUG.Generic_Drug_Name).all()
         else:
-            all_drug = DRUG.query.filter_by(Case_No=Case_No)
+            all_drug = DRUG.query.filter_by(Case_No=Case_No).order_by(
+                DRUG.Case_Start_Date.desc(), DRUG.Generic_Drug_Name)
         if Patient_ID is not None:
-            all_drug = all_drug.filter_by(Patient_ID=Patient_ID)
+            all_drug = all_drug.filter_by(Patient_ID=Patient_ID).order_by(
+                DRUG.Case_Start_Date.desc(), DRUG.Generic_Drug_Name)
         if Institution_Code is not None:
-            all_drug = all_drug.filter_by(Institution_Code=Institution_Code)
+            all_drug = all_drug.filter_by(Institution_Code=Institution_Code).order_by(
+                DRUG.Case_Start_Date.desc(), DRUG.Generic_Drug_Name)
         if Drug_Name is not None:
-            all_drug = all_drug.filter_by(Drug_Name=Drug_Name)
+            all_drug = all_drug.filter_by(Drug_Name=Drug_Name).order_by(
+                DRUG.Case_Start_Date.desc(), DRUG.Generic_Drug_Name)
         if Generic_Drug_Name is not None:
             all_drug = all_drug.filter_by(
-                Generic_Drug_Name=Generic_Drug_Name)
+                Generic_Drug_Name=Generic_Drug_Name).order_by(DRUG.Case_Start_Date.desc(), DRUG.Generic_Drug_Name)
         if Discharge_Indicator is not None:
             all_drug = all_drug.filter_by(
-                Discharge_Indicator=Discharge_Indicator)
+                Discharge_Indicator=Discharge_Indicator).order_by(DRUG.Case_Start_Date.desc(), DRUG.Generic_Drug_Name)
         result = drugs_schema.dump(all_drug)
         return jsonify(result)
 
@@ -196,16 +212,20 @@ def get_radiology():
         return jsonify(error="Invalid API key"), 403
     else:
         if Case_No is None:
-            all_rads = Radiology.query.all()
+            all_rads = Radiology.query.order_by(
+                Radiology.Exam_Start_Date.desc(), Radiology.Order_Name).all()
         else:
-            all_rads = Radiology.query.filter_by(Case_No=Case_No)
+            all_rads = Radiology.query.filter_by(Case_No=Case_No).order_by(
+                Radiology.Exam_Start_Date.desc(), Radiology.Order_Name)
         if Institution_Code is not None:
-            all_rads = all_rads.filter_by(Institution_Code=Institution_Code)
+            all_rads = all_rads.filter_by(Institution_Code=Institution_Code).order_by(
+                Radiology.Exam_Start_Date.desc(), Radiology.Order_Name)
         if Order_Name is not None:
-            all_rads = all_rads.filter_by(Order_Name=Order_Name)
+            all_rads = all_rads.filter_by(Order_Name=Order_Name).order_by(
+                Radiology.Exam_Start_Date.desc(), Radiology.Order_Name)
         if Procedure_Name is not None:
             all_rads = all_rads.filter_by(
-                Procedure_Name=Procedure_Name)
+                Procedure_Name=Procedure_Name).order_by(Radiology.Exam_Start_Date.desc(), Radiology.Order_Name)
         result = rads_schema.dump(all_rads)
         return jsonify(result)
 

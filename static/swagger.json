@@ -6,13 +6,13 @@
     "version": "1.0"
   },
   "host": "sgs-genai-omr-api.azurewebsites.net/",
-  "basePath": "/",
+  "basePath": "",
   "schemes": ["https"],
   "paths": {
     "/emd": {
       "get": {
-        "summary": "Get a list of Patient clinical records",
-        "description": "Returns a list of users",
+        "summary": "Get a list of EMD Patient clinical records",
+        "description": "Returns list of EMD Patients clinical information",
         "produces": ["application/json"],
         "parameters": [
           {
@@ -76,7 +76,7 @@
         ],
         "responses": {
           "200": {
-            "description": "A list of users",
+            "description": "Returns list of EMD Patients clinical information",
             "schema": {
               "type": "array",
               "items": {
@@ -121,6 +121,478 @@
                   "Value_Text": {
                     "type": "date",
                     "description": "Authored Date"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/lab": {
+      "get": {
+        "summary": "Get a list of Patient lab records",
+        "description": "Returns list of Lab Patients clinical information",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "Patient_ID",
+            "in": "query",
+            "description": "The Patient ID",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "Case_No",
+            "in": "query",
+            "description": "Patient case number",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Institution_Code",
+            "in": "query",
+            "description": "Institution code",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Lab_Test_Code",
+            "in": "query",
+            "description": "Lab Test Code",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Lab_Test_Description",
+            "in": "query",
+            "description": "Lab Test Description",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Lab_Resulted_Order_Test_Code",
+            "in": "query",
+            "description": "Lab Resulted Order Test Code",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Lab_Resulted_Order_Test_Description",
+            "in": "query",
+            "description": "Lab Resulted Order Test Description",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Result_Value",
+            "in": "query",
+            "description": "Result Value",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Reference_Ranges",
+            "in": "query",
+            "description": "Reference Ranges",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Units_of_Measurement",
+            "in": "query",
+            "description": "Units of Measurement",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "API key"
+          },
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "default": "application/json",
+            "description": "`Content-Type` header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns list of Lab Patients clinical information",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "Lab_ID": {
+                    "type": "integer",
+                    "description": "Unique ID"
+                  },
+                  "Patient_ID": {
+                    "type": "string",
+                    "description": "Patient ID"
+                  },
+                  "Institution_Code": {
+                    "type": "string",
+                    "description": "Institution Code"
+                  },
+                  "Case_No": {
+                    "type": "string",
+                    "description": "Institution Code"
+                  },
+                  "Lab_Test_Code": {
+                    "type": "string",
+                    "description": "Lab Test Code"
+                  },
+                  "Lab_Test_Description": {
+                    "type": "string",
+                    "description": "Lab Test Description"
+                  },
+                  "Lab_Resulted_Order_Test_Code": {
+                    "type": "string",
+                    "description": "Lab Resulted Order Test Code"
+                  },
+                  "Lab_Resulted_Order_Test_Description": {
+                    "type": "string",
+                    "description": "Lab Resulted Order Test Description"
+                  },
+                  "Result_Value": {
+                    "type": "string",
+                    "description": "Result Value"
+                  },
+                  "Reference_Ranges": {
+                    "type": "string",
+                    "description": "Reference Ranges"
+                  },
+                  "Units_of_Measurement": {
+                    "type": "string",
+                    "description": "Units of Measurement"
+                  },
+                  "Result_Date": {
+                    "type": "date",
+                    "description": "Result Date"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/drugs": {
+      "get": {
+        "summary": "Get a list of Patient drug records",
+        "description": "Returns list of Drug Patients clinical information",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "Patient_ID",
+            "in": "query",
+            "description": "The Patient ID",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "Case_No",
+            "in": "query",
+            "description": "Patient case number",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Institution_Code",
+            "in": "query",
+            "description": "Institution code",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Drug_Form",
+            "in": "query",
+            "description": "Drug Form",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Drug_Name",
+            "in": "query",
+            "description": "Drug Name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Generic_Drug_Name",
+            "in": "query",
+            "description": "Generic Drug Name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Drug_Dispensed_Date_From",
+            "in": "query",
+            "description": "Drug Dispensed Date From",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Drug_Dispensed_Date_To",
+            "in": "query",
+            "description": "Drug Dispensed Date To",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Duration_Unit",
+            "in": "query",
+            "description": "Duration Unit",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Discharge_Indicator",
+            "in": "query",
+            "description": "Discharge Indicator",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "API key"
+          },
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "default": "application/json",
+            "description": "`Content-Type` header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns list of Drug Patients clinical information",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "Drug_ID": {
+                    "type": "integer",
+                    "description": "Unique ID"
+                  },
+                  "Patient_ID": {
+                    "type": "string",
+                    "description": "Patient ID"
+                  },
+                  "Institution_Code": {
+                    "type": "string",
+                    "description": "Institution Code"
+                  },
+                  "Case_No": {
+                    "type": "string",
+                    "description": "Institution Code"
+                  },
+                  "Drug_Form": {
+                    "type": "string",
+                    "description": "Drug Form"
+                  },
+                  "Drug_Name": {
+                    "type": "string",
+                    "description": "Drug Name"
+                  },
+                  "Generic_Drug_Name": {
+                    "type": "string",
+                    "description": "Generic Drug Name"
+                  },
+                  "Drug_Dispensed_Date_From": {
+                    "type": "date",
+                    "description": "Drug Dispensed Date From"
+                  },
+                  "Drug_Dispensed_Date_To": {
+                    "type": "date",
+                    "description": "Drug Dispensed Date To"
+                  },
+                  "Duration_Unit": {
+                    "type": "string",
+                    "description": "Duration Unit"
+                  },
+                  "Discharge_Indicator": {
+                    "type": "string",
+                    "description": "Discharge Indicator"
+                  },
+                  "Instructions_from_Ordered": {
+                    "type": "string",
+                    "description": "Instructions from Ordered"
+                  },
+                  "Instructions_from_Dispensed": {
+                    "type": "string",
+                    "description": "Instructions from Dispensed"
+                  },
+                  "Duration_from_Dispensed": {
+                    "type": "string",
+                    "description": "Duration from Dispensed"
+                  },
+                  "Case_Start_Date": {
+                    "type": "date",
+                    "description": "Case Start Date"
+                  },
+                  "Case_Type_Description": {
+                    "type": "string",
+                    "description": "Case Type Description"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/radiology": {
+      "get": {
+        "summary": "Get a list of Patient radiology records",
+        "description": "Returns list of Radiology Patients clinical information",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "Patient_ID",
+            "in": "query",
+            "description": "The Patient ID",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "Case_No",
+            "in": "query",
+            "description": "Patient case number",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Institution_Code",
+            "in": "query",
+            "description": "Institution code",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Visit_Date",
+            "in": "query",
+            "description": "Visit Date",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Exam_Start_Date",
+            "in": "query",
+            "description": "Exam Start Date",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Performed_Date_Time",
+            "in": "query",
+            "description": "Performed Date Time",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Order_Name",
+            "in": "query",
+            "description": "Order Name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Procedure_Name",
+            "in": "query",
+            "description": "Procedure Name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Report_cleaned",
+            "in": "query",
+            "description": "Report cleaned",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "API key"
+          },
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "default": "application/json",
+            "description": "`Content-Type` header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns list of Radiology Patients clinical information",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "Rad_ID": {
+                    "type": "integer",
+                    "description": "Unique ID"
+                  },
+                  "Patient_ID": {
+                    "type": "string",
+                    "description": "Patient ID"
+                  },
+                  "Institution_Code": {
+                    "type": "string",
+                    "description": "Institution Code"
+                  },
+                  "Case_No": {
+                    "type": "string",
+                    "description": "Institution Code"
+                  },
+                  "Visit_Date": {
+                    "type": "date",
+                    "description": "Visit Date"
+                  },
+                  "Exam_Start_Date": {
+                    "type": "date",
+                    "description": "Exam Start Date"
+                  },
+                  "Performed_Date_Time": {
+                    "type": "date",
+                    "description": "Performed Date Time"
+                  },
+                  "Order_Name": {
+                    "type": "string",
+                    "description": "Order Name"
+                  },
+                  "Procedure_Name": {
+                    "type": "string",
+                    "description": "Procedure Name"
+                  },
+                  "Report_cleaned": {
+                    "type": "string",
+                    "description": "Report cleaned"
                   }
                 }
               }
