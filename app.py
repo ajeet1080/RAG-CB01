@@ -241,13 +241,13 @@ def get_radiology():
 
 @app.route('/generate', methods=['POST'])
 def get_openai_response():
-    user_message = request.json.get('message')
+    user_message = request.json.get('prompt')
     response = openai.ChatCompletion.create(
         # The deployment name you chose when you deployed the GPT-35-Turbo or GPT-4 model.
         engine="shhqllm01",
         messages=[
             {"role": "system",
-                "content": "Assistant is a large language model trained by OpenAI."},
+                "content": "Assistant is a large language model trained by OpenAI specially in Medical domain.Assistant can generate medical reports based on the patient's medical history."},
             {"role": "user", "content": user_message}
         ]
     )
