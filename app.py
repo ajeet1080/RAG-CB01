@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask_cors import CORS
 from models import initialize_db, EMD, emdSchema,  DRUG, drugSchema, LAB, labSchema, Radiology, radSchema
+import openai
 
 # test
 app = Flask(__name__)
@@ -12,6 +13,12 @@ initialize_db(app)
 
 CORS(app)
 app.app_context().push()
+
+openai.api_type = "azure"
+openai.api_version = "2023-05-15"
+# Your Azure OpenAI resource's endpoint value.
+openai.api_base = "https://singhealth-openai.openai.azure.com/"
+openai.api_key = "8878aae71e9d425ca35e7a2c70d8f9af"
 
 
 @app.route('/static/<path:path>')
@@ -228,6 +235,23 @@ def get_radiology():
                 Procedure_Name=Procedure_Name).order_by(Radiology.Exam_Start_Date.desc(), Radiology.Order_Name)
         result = rads_schema.dump(all_rads)
         return jsonify(result)
+
+# Create Post route called /generate to call azure open ai api to ask question and get answer. Use deployment shhqllm01
+
+
+@app.route('/generate', methods=['POST'])
+def get_openai_response():
+    user_message = request.json.get('message')
+    response = openai.ChatCompletion.create(
+        # The deployment name you chose when you deployed the GPT-35-Turbo or GPT-4 model.
+        engine="shhqllm01",
+        messages=[
+            {"role": "system",
+                "content": "Assistant is a large language model trained by OpenAI."},
+            {"role": "user", "content": user_message}
+        ]
+    )
+    return jsonify(response['choices'][0]['message'])
 
 
 # Run Server

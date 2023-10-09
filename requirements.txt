@@ -5,4 +5,5 @@ flask_marshmallow
 flask_swagger_ui
 flask-sqlalchemy
 flask-cors
+openai
 pyodbc
