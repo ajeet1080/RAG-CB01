@@ -247,9 +247,9 @@ def get_openai_response():
         engine="shhqllm01",
         messages=[
             {"role": "system",
-                "content": "Assistant is a large language model trained by OpenAI specially in Medical domain.Assistant can generate medical reports based on the patient's medical history."},
+                "content": "Assistant can generate medical reports based on the given patient's medical data."},
             {"role": "user", "content": user_message}
-        ]
+        ] , temperature=0.0
     )
     return jsonify(response['choices'][0]['message'])
 
