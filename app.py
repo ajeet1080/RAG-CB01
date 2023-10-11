@@ -249,7 +249,7 @@ def get_openai_response():
             {"role": "system",
                 "content": "Assistant can generate medical reports based on the given patient's medical data."},
             {"role": "user", "content": user_message}
-        ] , temperature=0.0
+        ] , temperature=0.3,top_p=1
     )
     return jsonify(response['choices'][0]['message'])
 
