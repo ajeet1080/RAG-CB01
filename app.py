@@ -269,25 +269,25 @@ def get_drugs():
     else:
         if Case_No is None:
             all_drug = DRUG.query.order_by(
-                DRUG.Case_Start_Date.desc(), DRUG.Generic_Drug_Name).all()
+                DRUG.Drug_Dispensed_Date_To.desc(), DRUG.Generic_Drug_Name).all()
         else:
             all_drug = DRUG.query.filter_by(Case_No=Case_No).order_by(
-                DRUG.Case_Start_Date.desc(), DRUG.Generic_Drug_Name)
+                DRUG.Drug_Dispensed_Date_To.desc(), DRUG.Generic_Drug_Name)
         if Patient_ID is not None:
             all_drug = all_drug.filter_by(Patient_ID=Patient_ID).order_by(
-                DRUG.Case_Start_Date.desc(), DRUG.Generic_Drug_Name)
+                DRUG.Drug_Dispensed_Date_To.desc(), DRUG.Generic_Drug_Name)
         if Institution_Code is not None:
             all_drug = all_drug.filter_by(Institution_Code=Institution_Code).order_by(
-                DRUG.Case_Start_Date.desc(), DRUG.Generic_Drug_Name)
+                DRUG.Drug_Dispensed_Date_To.desc(), DRUG.Generic_Drug_Name)
         if Drug_Name is not None:
             all_drug = all_drug.filter_by(Drug_Name=Drug_Name).order_by(
-                DRUG.Case_Start_Date.desc(), DRUG.Generic_Drug_Name)
+                DRUG.Drug_Dispensed_Date_To.desc(), DRUG.Generic_Drug_Name)
         if Generic_Drug_Name is not None:
             all_drug = all_drug.filter_by(
-                Generic_Drug_Name=Generic_Drug_Name).order_by(DRUG.Case_Start_Date.desc(), DRUG.Generic_Drug_Name)
+                Generic_Drug_Name=Generic_Drug_Name).order_by(DRUG.Drug_Dispensed_Date_To.desc(), DRUG.Generic_Drug_Name)
         if Discharge_Indicator is not None:
             all_drug = all_drug.filter_by(
-                Discharge_Indicator=Discharge_Indicator).order_by(DRUG.Case_Start_Date.desc(), DRUG.Generic_Drug_Name)
+                Discharge_Indicator=Discharge_Indicator).order_by(DRUG.Drug_Dispensed_Date_To.desc(), DRUG.Generic_Drug_Name)
         result = drugs_schema.dump(all_drug)
         return jsonify(result)
 
