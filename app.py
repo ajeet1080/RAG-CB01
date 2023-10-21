@@ -2,8 +2,9 @@ from flask import Flask, request, jsonify, send_from_directory
 # from flask_marshmallow import Marshmallow
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask_cors import CORS
-from models import initialize_db, EMD, emdSchema,  DRUG, drugSchema, LAB, labSchema, Radiology, radSchema
+from models import initialize_db, EMD, emdSchema,  DRUG, drugSchema, LAB, labSchema, Radiology, radSchema , END, endSchema, Urology , uroSchema
 import openai
+from sqlalchemy import func
 
 # test
 app = Flask(__name__)
@@ -62,6 +63,12 @@ API_KEYS = {
 emd_schema = emdSchema()
 emds_schema = emdSchema(many=True)
 
+end_schema = endSchema()
+ends_schema = endSchema(many=True)
+
+uro_schema = uroSchema()
+uros_schema = uroSchema(many=True)
+
 lab_schema = labSchema()
 labs_schema = labSchema(many=True)
 
@@ -114,6 +121,89 @@ def get_emds():
                 EMD.Authored_Date.desc(), EMD.Document_Item_Description)
         result = emds_schema.dump(all_emds)
         return jsonify(result)
+    
+
+@app.route('/end', methods=['GET'])
+def get_ends():
+    api_key = request.headers.get('x-api-key')
+   # fetch authentication api_key value from request as api_key
+    Case_No = request.args.get('Case_No')
+    Patient_ID = request.args.get('Patient_ID')
+    Institution_Code = request.args.get('Institution_Code')
+    Document_Name = request.args.get('Document_Name')
+    Document_Item_Name_Long = request.args.get('Document_Item_Name_Long')
+    Left_Label = request.args.get('Left_Label')
+    if api_key is None:
+        return jsonify(error="Missing API key"), 400
+
+    # Check if the provided API key is valid
+    if api_key not in API_KEYS.values():
+        return jsonify(error="Invalid API key"), 403
+    else:
+        if Case_No is None:
+            all_ends = END.query.order_by(
+                END.Authored_Date.desc(), END.Document_Item_Description).all()
+        else:
+            all_ends = END.query.filter_by(Case_No=Case_No).order_by(
+                END.Authored_Date.desc(), END.Document_Item_Description)
+        if Patient_ID is not None:
+            all_ends = all_ends.filter_by(Patient_ID=Patient_ID).order_by(
+                END.Authored_Date.desc(), END.Document_Item_Description)
+        if Institution_Code is not None:
+            all_ends = all_ends.filter_by(Institution_Code=Institution_Code).order_by(
+                END.Authored_Date.desc(), END.Document_Item_Description)
+        if Document_Name is not None:
+            all_ends = all_ends.filter_by(Document_Name=Document_Name).order_by(
+                END.Authored_Date.desc(), END.Document_Item_Description)
+        if Document_Item_Name_Long is not None:
+            all_ends = all_ends.filter_by(
+                Document_Item_Name_Long=Document_Item_Name_Long).order_by(END.Authored_Date.desc(), END.Document_Item_Description)
+        if Left_Label is not None:
+            all_ends = all_ends.filter_by(Left_Label=Left_Label).order_by(
+                END.Authored_Date.desc(), END.Document_Item_Description)
+        result = ends_schema.dump(all_ends)
+        return jsonify(result) 
+
+@app.route('/uro', methods=['GET'])
+def get_uros():
+    api_key = request.headers.get('x-api-key')
+   # fetch authentication api_key value from request as api_key
+    Case_No = request.args.get('Case_No')
+    Patient_ID = request.args.get('Patient_ID')
+    Institution_Code = request.args.get('Institution_Code')
+    Document_Name = request.args.get('Document_Name')
+    Document_Item_Name_Long = request.args.get('Document_Item_Name_Long')
+    Left_Label = request.args.get('Left_Label')
+    if api_key is None:
+        return jsonify(error="Missing API key"), 400
+
+    # Check if the provided API key is valid
+    if api_key not in API_KEYS.values():
+        return jsonify(error="Invalid API key"), 403
+    else:
+        if Case_No is None:
+            all_uros = Urology.query.order_by(
+                Urology.Authored_Date.desc(), Urology.Document_Item_Description).all()
+        else:
+            all_uros = Urology.query.filter_by(Case_No=Case_No).order_by(
+                Urology.Authored_Date.desc(), Urology.Document_Item_Description)
+        if Patient_ID is not None:
+            all_uros = all_uros.filter_by(Patient_ID=Patient_ID).order_by(
+                Urology.Authored_Date.desc(), Urology.Document_Item_Description)
+        if Institution_Code is not None:
+            all_uros = all_uros.filter_by(Institution_Code=Institution_Code).order_by(
+                Urology.Authored_Date.desc(), Urology.Document_Item_Description)
+        if Document_Name is not None:
+            all_uros = all_uros.filter_by(Document_Name=Document_Name).order_by(
+                Urology.Authored_Date.desc(), Urology.Document_Item_Description)
+        if Document_Item_Name_Long is not None:
+            all_uros = all_uros.filter_by(
+                Document_Item_Name_Long=Document_Item_Name_Long).order_by(Urology.Authored_Date.desc(), Urology.Document_Item_Description)
+        if Left_Label is not None:
+            all_uros = all_uros.filter_by(Left_Label=Left_Label).order_by(
+                Urology.Authored_Date.desc(), Urology.Document_Item_Description)
+        result = uros_schema.dump(all_uros)
+        return jsonify(result)         
 
 
 @app.route('/lab', methods=['GET'])

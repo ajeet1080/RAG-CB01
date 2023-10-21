@@ -48,6 +48,70 @@ class EMD(db.Model):
         self.Authored_Date = Authored_Date
         self.Value_Text = Value_Text
 
+class END(db.Model):
+    END_ID = db.Column(db.Integer, primary_key=True)
+    Patient_ID = db.Column("Patient ID", db.String(10), unique=False)
+    Institution_Code = db.Column(
+        'Institution Code', db.String(50), unique=False)
+    Case_No = db.Column("Case No", db.String(10), unique=False)
+    Document_Name = db.Column("Document Name", db.String, unique=False)
+    Document_Item_Name_Long = db.Column(
+        "Document Item Name Long", db.String, unique=False)
+    Document_Item_Description = db.Column(
+        "Document Item Description", db.String, unique=False)
+    Left_Label = db.Column("Item Left Label", db.String, unique=False)
+    Right_Label = db.Column("Item Right Label", db.String, unique=False)
+    Authored_Date = db.Column(
+        "Authored Date (YYYYMMDD)", db.String, unique=False)
+    Value_Text = db.Column("Value Text cleaned", db.String, unique=False)
+
+
+    def __init__(self, END_ID, Patient_ID, Institution_Code, Case_No, Document_Name, Document_Item_Name_Long, Document_Item_Description, Left_Label, Right_Label, Authored_Date, Value_Text):
+        self.END_ID = END_ID
+        self.Patient_ID = Patient_ID
+        self.Institution_Code = Institution_Code
+        self.Case_No = Case_No
+        self.Document_Name = Document_Name
+        self.Document_Item_Name_Long = Document_Item_Name_Long
+        self.Document_Item_Description = Document_Item_Description
+        self.Left_Label = Left_Label
+        self.Right_Label = Right_Label
+        self.Authored_Date = Authored_Date
+        self.Value_Text = Value_Text
+
+
+class Urology(db.Model):
+    URO_ID = db.Column(db.Integer, primary_key=True)
+    Patient_ID = db.Column("Patient ID", db.String(10), unique=False)
+    Institution_Code = db.Column(
+        'Institution Code', db.String(50), unique=False)
+    Case_No = db.Column("Case No", db.String(10), unique=False)
+    Document_Name = db.Column("Document Name", db.String, unique=False)
+    Document_Item_Name_Long = db.Column(
+        "Document Item Name Long", db.String, unique=False)
+    Document_Item_Description = db.Column(
+        "Document Item Description", db.String, unique=False)
+    Left_Label = db.Column("Item Left Label", db.String, unique=False)
+    Right_Label = db.Column("Item Right Label", db.String, unique=False)
+    Authored_Date = db.Column(
+        "Authored Date (YYYYMMDD)", db.String, unique=False)
+    Value_Text = db.Column("Value Text cleaned", db.String, unique=False)
+
+
+    def __init__(self, URO_ID, Patient_ID, Institution_Code, Case_No, Document_Name, Document_Item_Name_Long, Document_Item_Description, Left_Label, Right_Label, Authored_Date, Value_Text):
+        self.URO_ID = URO_ID
+        self.Patient_ID = Patient_ID
+        self.Institution_Code = Institution_Code
+        self.Case_No = Case_No
+        self.Document_Name = Document_Name
+        self.Document_Item_Name_Long = Document_Item_Name_Long
+        self.Document_Item_Description = Document_Item_Description
+        self.Left_Label = Left_Label
+        self.Right_Label = Right_Label
+        self.Authored_Date = Authored_Date
+        self.Value_Text = Value_Text        
+ 
+
 # Model DRUG with Columns  Drug_ID as Primary Key,  Institution Code,  Case No,Drug Form,Drug Name, Generic Drug Name,Drug Dispensed Date From,Drug Dispensed Date To,Duration Unit (from Dispensed),Discharge Indicator,Instructions (from Ordered),Instructions (from Dispensed),Duration (from Dispensed), Case Start Date,Case Type Description
 
 
@@ -157,6 +221,20 @@ class emdSchema(ma.Schema):
     class Meta:
         fields = ('EMD_ID', 'Patient_ID', 'Institution_Code', 'Case_No', 'Document_Name', 'Document_Item_Name_Long',
                   'Document_Item_Description', 'Left_Label', 'Right_Label', 'Authored_Date', 'Value_Text')
+        
+# Define Schema for END
+class endSchema(ma.Schema):
+    class Meta:
+        fields = ('END_ID', 'Patient_ID', 'Institution_Code', 'Case_No', 'Document_Name', 'Document_Item_Name_Long',
+                  'Document_Item_Description', 'Left_Label', 'Right_Label', 'Authored_Date', 'Value_Text') 
+
+# Define Schema for URO
+class uroSchema(ma.Schema):
+    class Meta:
+        fields = ('URO_ID', 'Patient_ID', 'Institution_Code', 'Case_No', 'Document_Name', 'Document_Item_Name_Long',
+                  'Document_Item_Description', 'Left_Label', 'Right_Label', 'Authored_Date', 'Value_Text')
+
+
 # Define Schema for DRUG
 
 
