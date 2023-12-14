@@ -334,7 +334,7 @@ def get_openai_response():
     user_message = request.json.get('prompt')
     response = openai.ChatCompletion.create(
         # The deployment name you chose when you deployed the GPT-35-Turbo or GPT-4 model.
-        engine="shhqllm03",
+        engine="mhdhmllm1",
         messages=[
             {"role": "system",
                 "content": "You are medical Assistant that can generate medical reports based on the given patient's medical data."},
