@@ -344,7 +344,7 @@ def get_openai_response():
     return jsonify(response['choices'][0]['message'])
 
 @app.route('/compare', methods=['POST'])
-def get_openai_response():
+def get_comparision_response():
     user_message = request.json.get('prompt')
     response = openai.ChatCompletion.create(
         # The deployment name you chose when you deployed the GPT-35-Turbo or GPT-4 model.
