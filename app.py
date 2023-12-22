@@ -343,6 +343,20 @@ def get_openai_response():
     )
     return jsonify(response['choices'][0]['message'])
 
+@app.route('/compare', methods=['POST'])
+def get_openai_response():
+    user_message = request.json.get('prompt')
+    response = openai.ChatCompletion.create(
+        # The deployment name you chose when you deployed the GPT-35-Turbo or GPT-4 model.
+        engine="mhdhmllm1",
+        messages=[
+            {"role": "system",
+                "content": "Extract the list of entities and their values from the provided Clinical Note and Medical Report in tabular format.\n\nAn Entity is:\n- Relevant: to the main story.\n- Specific: descriptive yet concise (5 words or fewer).\n- Faithful: present in the provided data.\n- Anywhere: Located anywhere in provided data."},
+            {"role": "user", "content": user_message}
+        ] , temperature=0.3,top_p=1 
+    )
+    return jsonify(response['choices'][0]['message'])
+
 
 # Run Server
 if __name__ == '__main__':
