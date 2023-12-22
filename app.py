@@ -351,7 +351,7 @@ def get_comparision_response():
         engine="mhdhmllm1",
         messages=[
             {"role": "system",
-                "content": "Extract the list of entities and their values from the provided Clinical Note and Medical Report in tabular format.\n\nAn Entity is:\n- Relevant: to the main story.\n- Specific: descriptive yet concise (5 words or fewer).\n- Faithful: present in the provided data.\n- Anywhere: Located anywhere in provided data."},
+                "content": "Extract the list of entities and their values from the provided Source Data and Medical Report in tabular format with 3 columns named as Entity ,Source Data value, Medical Report Value .\n\nAn Entity is:\n- Relevant: to the main story.\n- Specific: descriptive yet concise (5 words or fewer).\n- Faithful: present in the provided data.\n- Anywhere: Located anywhere in provided data."},
             {"role": "user", "content": user_message}
         ] , temperature=0.3,top_p=1 
     )
