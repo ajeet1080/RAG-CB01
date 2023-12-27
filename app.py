@@ -5,6 +5,9 @@ from flask_cors import CORS
 from models import initialize_db, EMD, emdSchema,  DRUG, drugSchema, LAB, labSchema, Radiology, radSchema , END, endSchema, Urology , uroSchema
 import openai
 from sqlalchemy import func
+import ffmpeg
+import azure.cognitiveservices.speech as speechsdk
+import os
 
 # test
 app = Flask(__name__)
@@ -356,6 +359,68 @@ def get_comparision_response():
         ] , temperature=0.3,top_p=1 
     )
     return jsonify(response['choices'][0]['message'])
+
+def convert_audio(input_file, output_file):
+    try:
+        (
+            ffmpeg
+            .input(input_file)
+            .output(output_file, acodec='pcm_s16le', ac=1, ar=16000)
+            .run(overwrite_output=True)
+        )
+        return True
+    except ffmpeg.Error as e:
+        print(f"Error occurred during audio conversion: {e}")
+        return False
+
+@app.route('/transcribe', methods=['POST'])
+def transcribe_audio():
+    if 'audio' not in request.files:
+        return jsonify({"transcript": "No audio file provided"}), 400
+
+    audio_file = request.files['audio']
+
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_audio:
+        audio_file.save(temp_audio.name)
+
+    converted_audio_path = temp_audio.name + "_converted.wav"
+    if not convert_audio(temp_audio.name, converted_audio_path):
+        return jsonify({"transcript": "Failed to convert audio file"}), 500
+
+    speech_key = "e5404bd89ea14c388c2c17234f95e36a"
+    service_region = "southeastasia"
+    speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region)
+    audio_config = speechsdk.audio.AudioConfig(filename=converted_audio_path)
+
+    speech_recognizer = speechsdk.SpeechRecognizer(speech_config, audio_config)
+
+    done = False
+    all_results = []
+
+    def stop_cb(evt):
+        """Callback that stops continuous recognition upon receiving an event `evt`"""
+        speech_recognizer.stop_continuous_recognition()
+        nonlocal done
+        done = True
+
+    speech_recognizer.recognized.connect(lambda evt: all_results.append(evt.result.text))
+    speech_recognizer.session_stopped.connect(stop_cb)
+    speech_recognizer.canceled.connect(stop_cb)
+
+    speech_recognizer.start_continuous_recognition()
+    while not done:
+        pass
+
+    os.unlink(temp_audio.name)
+    os.unlink(converted_audio_path)
+
+    full_transcript = "\nSpeaker: ".join(all_results)
+    return jsonify({"transcript": full_transcript}), 200
+
+#Hello world get api 
+@app.route('/hello', methods=['GET'])
+def hello():
+    return jsonify({"message": "Hello world!"}), 200
 
 
 # Run Server
