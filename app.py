@@ -5,8 +5,7 @@ from flask_cors import CORS
 from models import initialize_db, EMD, emdSchema,  DRUG, drugSchema, LAB, labSchema, Radiology, radSchema , END, endSchema, Urology , uroSchema
 import openai
 from sqlalchemy import func
-import ffmpeg
-import azure.cognitiveservices.speech as speechsdk
+
 import os
 
 # test
@@ -21,8 +20,8 @@ app.app_context().push()
 openai.api_type = "azure"
 openai.api_version = "2023-05-15"
 # Your Azure OpenAI resource's endpoint value.
-openai.api_base = "https://singhealth-openai.openai.azure.com/"
-openai.api_key = "8878aae71e9d425ca35e7a2c70d8f9af"
+openai.api_base = "https://shplayground2.openai.azure.com/"
+openai.api_key = "fefc20d1c3ee4046b446c239f96e4fc4"
 
 
 @app.route('/static/<path:path>')
@@ -337,7 +336,7 @@ def get_openai_response():
     user_message = request.json.get('prompt')
     response = openai.ChatCompletion.create(
         # The deployment name you chose when you deployed the GPT-35-Turbo or GPT-4 model.
-        engine="mhdhmllm1",
+        engine="432",
         messages=[
             {"role": "system",
                 "content": "You are medical Assistant that can generate medical reports based on the given patient's medical data."},
@@ -351,7 +350,7 @@ def get_comparision_response():
     user_message = request.json.get('prompt')
     response = openai.ChatCompletion.create(
         # The deployment name you chose when you deployed the GPT-35-Turbo or GPT-4 model.
-        engine="mhdhmllm1",
+        engine="432",
         messages=[
             {"role": "system",
                 "content": "Extract the list of entities and their values from the provided Source Data and Medical Report in tabular format with 3 columns named as Entity ,Source Data value, Medical Report Value .\n\nAn Entity is:\n- Relevant: to the main story.\n- Specific: descriptive yet concise (5 words or fewer).\n- Faithful: present in the provided data.\n- Anywhere: Located anywhere in provided data."},
@@ -360,67 +359,20 @@ def get_comparision_response():
     )
     return jsonify(response['choices'][0]['message'])
 
-def convert_audio(input_file, output_file):
-    try:
-        (
-            ffmpeg
-            .input(input_file)
-            .output(output_file, acodec='pcm_s16le', ac=1, ar=16000)
-            .run(overwrite_output=True)
-        )
-        return True
-    except ffmpeg.Error as e:
-        print(f"Error occurred during audio conversion: {e}")
-        return False
+@app.route('/format_transcript', methods=['POST'])
+def get_format_transcript():
+    user_message = request.json.get('transcript')
+    response = openai.ChatCompletion.create(
+        # The deployment name you chose when you deployed the GPT-35-Turbo or GPT-4 model.
+        engine="432",
+        messages=[
+            {"role": "system",
+                "content": "You will be provided with a transcript of a conversation between a doctor and a patient. You need to format the transcript in a way that it is easy to read and understand. You can use any format you like. You can also add any additional information that you think is relevant."},
+            {"role": "user", "content": user_message}
+        ] , temperature=0.3,top_p=1 
+    )
+    return jsonify(response['choices'][0]['message'])
 
-@app.route('/transcribe', methods=['POST'])
-def transcribe_audio():
-    if 'audio' not in request.files:
-        return jsonify({"transcript": "No audio file provided"}), 400
-
-    audio_file = request.files['audio']
-
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_audio:
-        audio_file.save(temp_audio.name)
-
-    converted_audio_path = temp_audio.name + "_converted.wav"
-    if not convert_audio(temp_audio.name, converted_audio_path):
-        return jsonify({"transcript": "Failed to convert audio file"}), 500
-
-    speech_key = "e5404bd89ea14c388c2c17234f95e36a"
-    service_region = "southeastasia"
-    speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region)
-    audio_config = speechsdk.audio.AudioConfig(filename=converted_audio_path)
-
-    speech_recognizer = speechsdk.SpeechRecognizer(speech_config, audio_config)
-
-    done = False
-    all_results = []
-
-    def stop_cb(evt):
-        """Callback that stops continuous recognition upon receiving an event `evt`"""
-        speech_recognizer.stop_continuous_recognition()
-        nonlocal done
-        done = True
-
-    speech_recognizer.recognized.connect(lambda evt: all_results.append(evt.result.text))
-    speech_recognizer.session_stopped.connect(stop_cb)
-    speech_recognizer.canceled.connect(stop_cb)
-
-    speech_recognizer.start_continuous_recognition()
-    while not done:
-        pass
-
-    os.unlink(temp_audio.name)
-    os.unlink(converted_audio_path)
-
-    full_transcript = "\nSpeaker: ".join(all_results)
-    return jsonify({"transcript": full_transcript}), 200
-
-#Hello world get api 
-@app.route('/hello', methods=['GET'])
-def hello():
-    return jsonify({"message": "Hello world!"}), 200
 
 
 # Run Server
