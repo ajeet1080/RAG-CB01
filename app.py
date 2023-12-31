@@ -367,13 +367,25 @@ def get_format_transcript():
         engine="432",
         messages=[
             {"role": "system",
-                "content": "You will be provided with a transcript of a conversation between a doctor and a patient. You need to format the transcript in a way that it is easy to read and understand. You can use any format you like. You can also add any additional information that you think is relevant."},
-            {"role": "user", "content": user_message}
-        ] , temperature=0.3,top_p=1 
+                "content": "You will be provided with a transcript of a conversation between a doctor and a patient. You need to format the transcript in a way that it is easy to read and understand. You can use any format provided in Sample Transcript below. Do not add any additional information to the transcript. \n\nSample Transcript:\nDoctor: Hello, how are you?\nPatient: I am fine, thank you.\nDoctor: What brings you here today?\nPatient: I have a headache.\nDoctor: How long have you had it?\nPatient: For about a week."},
+            {"role": "assistant", "content": user_message}
+        ] , temperature=0.2,top_p=1 
     )
     return jsonify(response['choices'][0]['message'])
 
-
+@app.route('/summarize_transript', methods=['POST'])
+def get_summarize_transcript():
+    user_message = request.json.get('transcript')
+    response = openai.ChatCompletion.create(
+        # The deployment name you chose when you deployed the GPT-35-Turbo or GPT-4 model.
+        engine="432",
+        messages=[
+            {"role": "system",
+                "content": "You will be provided with a transcript of a conversation between a doctor and a patient. You need to summarize the transcript in a way that it is easy to read and understand. Summary show be 3-10 sentences long depending on the length of the transcript. Summary should include Problem, Medical history, Medications, Allergies, Family history, Social history, Physical exam, Assessment, Plan. \n\nSample Summary: \nProblem: Patient has a headache for about a week. \nMedical history: Patient has no medical history. \nMedication: Patient is not taking any medications. \nAllergies: Patient has no allergies. Patient has no family history. \nFamily history: Patient has no social history. \nPhysical examination: Patient has no physical exam. \nAssessment: Patient has no assessment. \nPlan: Patient has no plan."},
+            {"role": "assistant", "content": user_message}
+        ] , temperature=0.2,top_p=1 
+    )
+    return jsonify(response['choices'][0]['message'])
 
 # Run Server
 if __name__ == '__main__':
