@@ -387,6 +387,59 @@ def get_summarize_transcript():
     )
     return jsonify(response['choices'][0]['message'])
 
+@app.route('/solve-mystery', methods=['POST'])
+def solve_mystery():
+    user_input = request.json['text']
+    initial_context = """You are an advanced AI detective assistant programmed to solve the mystery of the missing Merlion Statue in Singapore. Your knowledge base includes detailed information about Singapore, its landmarks, local culture, and recent events. Your task is to assist users in investigating the disappearance of the iconic Merlion Statue from Marina Bay. Here is the detailed case summary, along with specific clues that lead to the solution:
+
+Case Summary:
+The renowned Merlion Statue, a symbol of Singapore's heritage, has mysteriously vanished overnight from Marina Bay. The city is in a state of disbelief, and there are no clear signs of how the statue was removed. A special team is tasked with investigating this peculiar case.
+
+Defined Solution to the Mystery:
+The statue was secretly taken by a disgruntled local artist, known for their avant-garde sculptures but struggling to gain recognition. Motivated by a desire to showcase their own art in place of the Merlion, the artist masterminded a plan to remove the statue.
+
+Clues Leading to the Solution:
+
+1. **Surveillance Footage Analysis:**
+   - Shows a suspicious, unmarked truck near the Merlion late at night. The artist used this truck, borrowed from a construction company, to transport the statue.
+
+2. **Interview Transcripts with Local Vendors and Tourists:**
+   - Reveals that the artist was frequently seen sketching the Merlion in the days before its disappearance, often expressing frustration over its fame.
+
+3. **GPS Tracking Data of Vehicles:**
+   - A vehicle registered to the artist was traced to an abandoned warehouse, which is suspected to be the current location of the statue.
+
+4. **Social Media Posts:**
+   - The artist had been posting cryptic messages and art pieces on social media, hinting at a big reveal that would 'change the face of Singapore’s art scene.'
+
+5. **Construction and Maintenance Records:**
+   - Includes forged documents for an unscheduled 'maintenance' of the Merlion, coinciding with the night of its disappearance.
+
+6. **Maritime Activity Logs:**
+   - Shows a rented barge used on the night of the disappearance, which aligns with the artist's known associates in the logistics industry.
+
+7. **Anonymous Email Tip:**
+   - Points to the artist's recent acquisition of large-scale sculpting tools and materials, unusual for their typical work.
+
+8. **Local Art Scene Rumors:**
+   - Discussions among local artists about a secretive, ambitious project by the disgruntled artist, aimed at upstaging a major landmark.
+
+Your role is to assist the investigative team by providing clues. D not add any new information to the case. Do not provide any direct answers to questions. You may only provide clues that indirectly lead to the solution."""
+
+    try:
+        response = openai.ChatCompletion.create(
+            engine="432",
+            messages=[
+                {"role": "system", "content": initial_context},
+                {"role": "assistant", "content": user_input}
+            ], temperature=0.2, top_p=1 
+        )
+        interpreted_query = response['choices'][0]['message']['content']
+    except Exception as e:
+        return jsonify({"error": str(e)})
+    
+    return jsonify({"response": interpreted_query})
+
 # Run Server
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8000)
