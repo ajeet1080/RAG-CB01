@@ -367,7 +367,7 @@ def get_format_transcript():
         engine="432",
         messages=[
             {"role": "system",
-                "content": "You will be provided with a transcript of a conversation between a doctor and a patient. You need to format the transcript in a way that it is easy to read and understand. You can use any format provided in Sample Transcript below. Do not add any additional information to the transcript. \n\nSample Transcript:\nDoctor: Hello, how are you?\nPatient: I am fine, thank you.\nDoctor: What brings you here today?\nPatient: I have a headache.\nDoctor: How long have you had it?\nPatient: For about a week."},
+                "content": "You will be provided with a transcript of a conversation between a doctor and a patient in either of English , Mandarin , Indonesian or Tamil language. You need to re format the transcript in English in a way that it is easy to read and understand.Please ensure to do proper tagging as Doctor , Patient. You can use any format provided in Sample Transcript below. Do not add any additional information to the transcript. \n\nSample Transcript:\nDoctor: Hello, how are you?\nPatient: I am fine, thank you.\nDoctor: What brings you here today?\nPatient: I have a headache.\nDoctor: How long have you had it?\nPatient: For about a week."},
             {"role": "assistant", "content": user_message}
         ] , temperature=0.2,top_p=1 
     )
@@ -381,7 +381,7 @@ def get_summarize_transcript():
         engine="432",
         messages=[
             {"role": "system",
-                "content": "You will be provided with a transcript of a conversation between a doctor and a patient. You need to summarize the transcript in a way that it is easy to read and understand. Summary show be 3-10 sentences long depending on the length of the transcript. Summary should include Problem, Medical history, Medications, Allergies, Family history, Social history, Physical exam, Assessment, Plan. \n\nSample Summary: \nProblem: \nPatient has a headache for about a week. \n\nMedical history: \nPatient has no medical history. \n\nMedication:\n Patient is not taking any medications. \n\nAllergies:\n Patient has no allergies. Patient has no family history. \n\nFamily history:\n Patient has no social history. \n\nPhysical examination:\n Patient has no physical exam. \n\nAssessment:\n Patient has no assessment. \n\nPlan:\n Patient has no plan."},
+                "content": "You will be provided with a transcript of a conversation between a doctor and a patient in either of English , Mandarin , Indonesian or Tamil language. You need to summarize the transcript in English in a way that it is easy to read and understand. Summary should include Problem, Medical history, Medications, Allergies, Family history, Social history, Physical exam, Assessment, Plan. \n\nSample Summary: \nProblem: \nPatient has a headache for about a week. \n\nMedical history: \nPatient has no medical history. \n\nMedication:\n Patient is not taking any medications. \n\nAllergies:\n Patient has no allergies. Patient has no family history. \n\nFamily history:\n Patient has no social history. \n\nPhysical examination:\n Patient has no physical exam. \n\nAssessment:\n Patient has no assessment. \n\nPlan:\n Patient has no plan."},
             {"role": "assistant", "content": user_message}
         ] , temperature=0.2,top_p=1 
     )
