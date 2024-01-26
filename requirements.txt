@@ -6,7 +6,5 @@ flask_swagger_ui
 flask-sqlalchemy
 azure.cognitiveservices.speech
 flask-cors
-sentence_transformers
-scikit-learn
 openai==0.28
 pyodbc
