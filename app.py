@@ -4,9 +4,6 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from flask_cors import CORS
 from models import initialize_db, EMD, emdSchema,  DRUG, drugSchema, LAB, labSchema, Radiology, radSchema , END, endSchema, Urology , uroSchema
 import openai
-from sqlalchemy import func
-from sentence_transformers import SentenceTransformer, util
-import os
 
 # test1
 app = Flask(__name__)
@@ -470,57 +467,7 @@ Sally
     
     return jsonify({"response": interpreted_query})
 
-model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-def get_semantic_similarity(received, actual):
-    embedding_1= model.encode(actual, convert_to_tensor=True)
-    embedding_2 = model.encode(received, convert_to_tensor=True)
-    cosine_score= util.cos_sim(embedding_1, embedding_2)
-    return cosine_score.item()
 
-@app.route('/similarity_score', methods=['POST'])
-def get_similarity_response():
-    user_message = request.json.get('text')
-    ideal_answer = """ Who: Sally, a 48 year-old avant-garde sculptor
-
-When: 3:20am
-
-Where: Merlion Park
-
-How: Arriving via barge, Sally dismantled the Merlion using tools left behind by the maintenance company – Lion Construction Company – and hauled the Merlion onto the barge using ropes. She then sailed to Warehouse 21 along Keppel Bay to re-work the Merlion into a sculpture to be unveiled on Chinese New Year eve.
-
-Why: Struggling to gain recognition for her works, she decided to use the iconic Merlion status as the base for her latest work as a form of protest and attract attention."""
-    response = openai.ChatCompletion.create(
-        # The deployment name you chose when you deployed the GPT-35-Turbo or GPT-4 model.
-        engine="432",
-        messages=[
-            {"role": "assistant",
-                "content": """You are scientific bot which is programmed to compare  2 set of texts.\n\n User has been asked to solve a mystery of the missing merlion. You will be provided with a list of sentences  which will represent response by user to a detective game which will indicate who stole Merlion statue with other details like when statue was stle, where did it happen , how it happen and what was the motive behind the theft. You will be also provided with ideal answer to the detective game. You need to find the similarity between the ideal answer and the provided sentences and  you need to provide reasoning eg: Becasue you mentioned the correct person but the time was wrong. You missed to mention the reason for the theft. \n\n You should not show score in response , only provide reasoning. Please follow below rules while giving response:\n\n
-    - Provide reason in less than 60 words.
-    - Provide reason including missing details on high level. eg. because you mentioned the correct person but the time was wrong. You missed to mention the reason for the theft.
-    - Always provide the reason in the following format. Do not provide answers in the reason.:  because <reason>.
-
-
-
-IDEAL ANSWER:
-
-    Who: Sally, a 48 year-old avant-garde sculptor
-
-    When: 3:20am
-
-    Where: Merlion Park
-
-    How: Arriving via barge, Sally dismantled the Merlion using tools left behind by the maintenance company , Lion Construction Company , and hauled the Merlion onto the barge using ropes. She then sailed to Warehouse 21 along Keppel Bay to re-work the Merlion into a sculpture to be unveiled on Chinese New Year eve.
-
-    Why: Struggling to gain recognition for her works, she decided to use the iconic Merlion status as the base for her latest work as a form of protest and attract attention.
-
-                """},
-            {"role": "user", "content": user_message}
-        ] , temperature=0.01,top_p=1 
-    )
-    reason = response['choices'][0]['message']['content']
-    score=  get_semantic_similarity(user_message, ideal_answer)
-    # Show the score in % in repsone along with reason for score. Put these into natural language easier for user to understand.
-    return jsonify({"score": str(round(score * 100)) + "%", "reason": reason})
 
 # Run Server
 if __name__ == '__main__':
