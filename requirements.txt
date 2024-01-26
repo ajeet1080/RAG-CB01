@@ -8,6 +8,6 @@ ffmpeg_python
 azure.cognitiveservices.speech
 flask-cors
 sentence_transformers
-sklearn
+scikit-learn
 openai==0.28
 pyodbc
