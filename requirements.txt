@@ -4,7 +4,6 @@ flask_restful
 flask_marshmallow
 flask_swagger_ui
 flask-sqlalchemy
-ffmpeg_python
 azure.cognitiveservices.speech
 flask-cors
 sentence_transformers
