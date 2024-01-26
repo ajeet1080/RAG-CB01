@@ -7,5 +7,7 @@ flask-sqlalchemy
 ffmpeg_python
 azure.cognitiveservices.speech
 flask-cors
+sentence_transformers
+sklearn
 openai==0.28
 pyodbc
