@@ -1,349 +1,170 @@
-from flask import Flask, request, jsonify, send_from_directory
-# from flask_marshmallow import Marshmallow
-from flask_swagger_ui import get_swaggerui_blueprint
-from flask_cors import CORS
-from models import initialize_db, EMD, emdSchema,  DRUG, drugSchema, LAB, labSchema, Radiology, radSchema , END, endSchema, Urology , uroSchema
-import openai
-from sqlalchemy import func
-
-# test
-app = Flask(__name__)
-
-# Initialize the database with the app instance
-initialize_db(app)
-
-CORS(app)
-app.app_context().push()
-
-openai.api_type = "azure"
-openai.api_version = "2023-05-15"
-# Your Azure OpenAI resource's endpoint value.
-openai.api_base = "https://singhealth-openai.openai.azure.com/"
-openai.api_key = "8878aae71e9d425ca35e7a2c70d8f9af"
-
-
-@app.route('/static/<path:path>')
-def send_static(path):
-    return send_from_directory('static', path)
-
-
-# Create route to upload file
-UPLOAD_FOLDER = 'uploads'
-
-
-@app.route('/uploads/<path:filename>')
-def download_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
-
-
-# Add code snippet to include Swagger docs route for API
-SWAGGER_URL = '/api/docs'  # URL for exposing Swagger UI (without trailing '/')
-# Our API url (can of course be a local resource)
-API_URL = '/static/swagger.json'
-
-# Call factory function to create our blueprint
-swaggerui_blueprint = get_swaggerui_blueprint(
-    SWAGGER_URL,
-    API_URL,
-    config={
-        'app_name': "SingHealth Medical Report Generator"
-    }
+import asyncio
+import os  
+import json  
+import logging  
+import openai  
+import nest_asyncio  
+from llama_index.core import VectorStoreIndex  
+from azure.search.documents.models import VectorizableTextQuery
+from llama_index.core.response.notebook_utils import (  
+    display_source_node,  
+    display_response,  
+)  
+from llama_index.llms.azure_openai import AzureOpenAI  
+from azure.core.credentials import AzureKeyCredential  
+from llama_index.core.schema import MetadataMode  
+from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding  
+from llama_index.vector_stores.azureaisearch import AzureAISearchVectorStore  
+from llama_index.vector_stores.azureaisearch import (  
+    IndexManagement,  
+    MetadataIndexFieldType,  
+)  
+from azure.search.documents import SearchClient  
+from azure.search.documents.indexes import SearchIndexClient  
+from llama_index.core.settings import Settings  
+from llama_index.core import StorageContext  
+from llama_index.core import StorageContext  
+from llama_index.core import load_index_from_storage 
+from azure.search.documents.models import (
+    QueryType,
+    QueryCaptionType,
+    QueryAnswerType
 )
-app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
+from flask import Flask, request, Response 
+from flask import stream_with_context
+import flask_cors
+  
+# initialize the Flask application  
+app = Flask(__name__)  
+flask_cors.CORS(app)
+
+aoai_api_key = "2841bd672d9147288f5ba44124ea37bd"
+aoai_endpoint = "https://singhealth-openai-02.openai.azure.com/"
+aoai_api_version = "2023-05-15"
+search_service_api_key = "jRDIXrlY5KlhPn8plXhkJzh1ZcP0qATM0SLWDaXwFcAzSeDmMcSa"
+search_service_endpoint = "https://shschat.search.windows.net"
+search_service_api_version = "2023-11-01"
+credential = AzureKeyCredential(search_service_api_key)
+index_name = "health-vector-03"
+
+llm = AzureOpenAI(
+    model="gpt-35-turbo",
+    deployment_name="gpt35",
+    api_key=aoai_api_key,
+    azure_endpoint=aoai_endpoint,
+    api_version=aoai_api_version,
+    max_tokens=1000,
+)
+
+llm_f = AzureOpenAI(
+    model="gpt-4",
+    deployment_name="gpt4v",
+    api_key=aoai_api_key,
+    azure_endpoint=aoai_endpoint,
+    api_version=aoai_api_version,
+    max_tokens=2000,
+    streaming=True,
+)
+
+embed_model = AzureOpenAIEmbedding(
+    model="text-embedding-ada-002",
+    deployment_name="text-embedding-ada-002",
+    api_key=aoai_api_key,
+    azure_endpoint=aoai_endpoint,
+    api_version=aoai_api_version,
+)
+
+# Use index client to demonstrate creating an index
+index_client = SearchIndexClient(
+    endpoint=search_service_endpoint,
+    credential=credential,
+)
+
+# Use search client to demonstration using existing index
+search_client = SearchClient(
+    endpoint=search_service_endpoint,
+    index_name=index_name,
+    credential=credential,
+    semantic_configuration_name="mySemanticConfig",
+    QueryType=QueryType.SEMANTIC,
+    query_caption=QueryCaptionType.EXTRACTIVE,
+    query_answer=QueryAnswerType.EXTRACTIVE,
+)
+
+metadata_fields = {  
+    "page_label": ("page_label", MetadataIndexFieldType.STRING),  
+    "file_name": ("file_name", MetadataIndexFieldType.STRING),  
+    "file_path": ("file_path", MetadataIndexFieldType.STRING),  
+    "file_type": ("file_type", MetadataIndexFieldType.STRING),  
+    "file_size": ("file_size", MetadataIndexFieldType.INT64),  
+    "prev_section_summary": ("prev_section_summary", MetadataIndexFieldType.STRING),  
+    "next_section_summary": ("next_section_summary", MetadataIndexFieldType.STRING),  
+    "section_summary": ("section_summary", MetadataIndexFieldType.STRING),  
+    "questions_this_excerpt_can_answer": ("questions_this_excerpt_can_answer", MetadataIndexFieldType.STRING),  
+    "excerpt": ("excerpt",MetadataIndexFieldType.STRING )  
+}  
+
+vector_store = AzureAISearchVectorStore(
+    search_or_index_client=index_client,
+    filterable_metadata_field_keys=metadata_fields,
+    index_name=index_name,
+    index_management=IndexManagement.CREATE_IF_NOT_EXISTS,
+    id_field_key="id",
+    chunk_field_key="chunk",
+    embedding_field_key="embedding",
+    embedding_dimensionality=1536,
+    metadata_string_field_key="metadata",
+    doc_id_field_key="doc_id",
+    language_analyzer="en.lucene",
+    vector_algorithm_type="exhaustiveKnn",
+    search_client=search_client,
+)
+
+storage_context = StorageContext.from_defaults(vector_store=vector_store)
+
+Settings.llm = llm_f
+Settings.embed_model = embed_model
 
 
-API_KEYS = {
-    "client1": "api_key_1",
-    "client2": "sgsgenaiapikey123098",
-    # Add more clients and API keys as needed
-}
+index0 = VectorStoreIndex([],storage_context=storage_context )
+index0.storage_context.persist()
 
+index3 = load_index_from_storage(storage_context)
+query_engine2 = index3.as_query_engine(streaming=True,similarity_top_k=2)
+query_engine1 = index3.as_query_engine(streaming=True,similarity_top_k=2)
 
-# Init Schema
-emd_schema = emdSchema()
-emds_schema = emdSchema(many=True)
-
-end_schema = endSchema()
-ends_schema = endSchema(many=True)
-
-uro_schema = uroSchema()
-uros_schema = uroSchema(many=True)
-
-lab_schema = labSchema()
-labs_schema = labSchema(many=True)
-
-drug_schema = drugSchema()
-drugs_schema = drugSchema(many=True)
-
-rad_schema = radSchema()
-rads_schema = radSchema(many=True)
-
-# Create route to get all records with optional  query parameter for any Patient_ID, Case_No, Institution_Code , Document_Name,Document_Item_Name_Long and Left_Label . Also create api_key for authentication
-
-
-@app.route('/emd', methods=['GET'])
-def get_emds():
-    api_key = request.headers.get('x-api-key')
-   # fetch authentication api_key value from request as api_key
-    Case_No = request.args.get('Case_No')
-    Patient_ID = request.args.get('Patient_ID')
-    Institution_Code = request.args.get('Institution_Code')
-    Document_Name = request.args.get('Document_Name')
-    Document_Item_Name_Long = request.args.get('Document_Item_Name_Long')
-    Left_Label = request.args.get('Left_Label')
-    if api_key is None:
-        return jsonify(error="Missing API key"), 400
-
-    # Check if the provided API key is valid
-    if api_key not in API_KEYS.values():
-        return jsonify(error="Invalid API key"), 403
-    else:
-        if Case_No is None:
-            all_emds = EMD.query.order_by(
-                EMD.Authored_Date.desc(), EMD.Document_Item_Description).all()
-        else:
-            all_emds = EMD.query.filter_by(Case_No=Case_No).order_by(
-                EMD.Authored_Date.desc(), EMD.Document_Item_Description)
-        if Patient_ID is not None:
-            all_emds = all_emds.filter_by(Patient_ID=Patient_ID).order_by(
-                EMD.Authored_Date.desc(), EMD.Document_Item_Description)
-        if Institution_Code is not None:
-            all_emds = all_emds.filter_by(Institution_Code=Institution_Code).order_by(
-                EMD.Authored_Date.desc(), EMD.Document_Item_Description)
-        if Document_Name is not None:
-            all_emds = all_emds.filter_by(Document_Name=Document_Name).order_by(
-                EMD.Authored_Date.desc(), EMD.Document_Item_Description)
-        if Document_Item_Name_Long is not None:
-            all_emds = all_emds.filter_by(
-                Document_Item_Name_Long=Document_Item_Name_Long).order_by(EMD.Authored_Date.desc(), EMD.Document_Item_Description)
-        if Left_Label is not None:
-            all_emds = all_emds.filter_by(Left_Label=Left_Label).order_by(
-                EMD.Authored_Date.desc(), EMD.Document_Item_Description)
-        result = emds_schema.dump(all_emds)
-        return jsonify(result)
+async def astreamer(generator):
+    try:
+        for i in generator:
+            yield (i)
+            await asyncio.sleep(.1)
+    except asyncio.CancelledError as e:
+        
+        print('cancelled')
+  
+@app.route('/llama_search', methods=['POST'])  
+def llama_search():  
+    try:  
+        # Parse the request body to get the query  
+        req_body = request.get_json()  
+        query = req_body.get('query')  
+  
+        if not query:  
+            return Response("Please pass a query in the request body", status=400)  
+  
+        response_1 = query_engine1.query(query)  
+  
+     #   def generate_response():
+     #       for text in response_1.response_gen:
+     #           yield f"data: {text}\n\n" 
     
-
-@app.route('/end', methods=['GET'])
-def get_ends():
-    api_key = request.headers.get('x-api-key')
-   # fetch authentication api_key value from request as api_key
-    Case_No = request.args.get('Case_No')
-    Patient_ID = request.args.get('Patient_ID')
-    Institution_Code = request.args.get('Institution_Code')
-    Document_Name = request.args.get('Document_Name')
-    Document_Item_Name_Long = request.args.get('Document_Item_Name_Long')
-    Left_Label = request.args.get('Left_Label')
-    if api_key is None:
-        return jsonify(error="Missing API key"), 400
-
-    # Check if the provided API key is valid
-    if api_key not in API_KEYS.values():
-        return jsonify(error="Invalid API key"), 403
-    else:
-        if Case_No is None:
-            all_ends = END.query.order_by(
-                END.Authored_Date.desc(), END.Document_Item_Description).all()
-        else:
-            all_ends = END.query.filter_by(Case_No=Case_No).order_by(
-                END.Authored_Date.desc(), END.Document_Item_Description)
-        if Patient_ID is not None:
-            all_ends = all_ends.filter_by(Patient_ID=Patient_ID).order_by(
-                END.Authored_Date.desc(), END.Document_Item_Description)
-        if Institution_Code is not None:
-            all_ends = all_ends.filter_by(Institution_Code=Institution_Code).order_by(
-                END.Authored_Date.desc(), END.Document_Item_Description)
-        if Document_Name is not None:
-            all_ends = all_ends.filter_by(Document_Name=Document_Name).order_by(
-                END.Authored_Date.desc(), END.Document_Item_Description)
-        if Document_Item_Name_Long is not None:
-            all_ends = all_ends.filter_by(
-                Document_Item_Name_Long=Document_Item_Name_Long).order_by(END.Authored_Date.desc(), END.Document_Item_Description)
-        if Left_Label is not None:
-            all_ends = all_ends.filter_by(Left_Label=Left_Label).order_by(
-                END.Authored_Date.desc(), END.Document_Item_Description)
-        result = ends_schema.dump(all_ends)
-        return jsonify(result) 
-
-@app.route('/uro', methods=['GET'])
-def get_uros():
-    api_key = request.headers.get('x-api-key')
-   # fetch authentication api_key value from request as api_key
-    Case_No = request.args.get('Case_No')
-    Patient_ID = request.args.get('Patient_ID')
-    Institution_Code = request.args.get('Institution_Code')
-    Document_Name = request.args.get('Document_Name')
-    Document_Item_Name_Long = request.args.get('Document_Item_Name_Long')
-    Left_Label = request.args.get('Left_Label')
-    if api_key is None:
-        return jsonify(error="Missing API key"), 400
-
-    # Check if the provided API key is valid
-    if api_key not in API_KEYS.values():
-        return jsonify(error="Invalid API key"), 403
-    else:
-        if Case_No is None:
-            all_uros = Urology.query.order_by(
-                Urology.Authored_Date.desc(), Urology.Document_Item_Description).all()
-        else:
-            all_uros = Urology.query.filter_by(Case_No=Case_No).order_by(
-                Urology.Authored_Date.desc(), Urology.Document_Item_Description)
-        if Patient_ID is not None:
-            all_uros = all_uros.filter_by(Patient_ID=Patient_ID).order_by(
-                Urology.Authored_Date.desc(), Urology.Document_Item_Description)
-        if Institution_Code is not None:
-            all_uros = all_uros.filter_by(Institution_Code=Institution_Code).order_by(
-                Urology.Authored_Date.desc(), Urology.Document_Item_Description)
-        if Document_Name is not None:
-            all_uros = all_uros.filter_by(Document_Name=Document_Name).order_by(
-                Urology.Authored_Date.desc(), Urology.Document_Item_Description)
-        if Document_Item_Name_Long is not None:
-            all_uros = all_uros.filter_by(
-                Document_Item_Name_Long=Document_Item_Name_Long).order_by(Urology.Authored_Date.desc(), Urology.Document_Item_Description)
-        if Left_Label is not None:
-            all_uros = all_uros.filter_by(Left_Label=Left_Label).order_by(
-                Urology.Authored_Date.desc(), Urology.Document_Item_Description)
-        result = uros_schema.dump(all_uros)
-        return jsonify(result)         
-
-
-@app.route('/lab', methods=['GET'])
-def get_lab():
-    api_key = request.headers.get('x-api-key')
-   # fetch authentication api_key value from request as api_key
-    Case_No = request.args.get('Case_No')
-    Patient_ID = request.args.get('Patient_ID')
-    Institution_Code = request.args.get('Institution_Code')
-    Lab_Test_Code = request.args.get('Lab_Test_Code')
-    Lab_Resulted_Order_Test_Code = request.args.get(
-        'Lab_Resulted_Order_Test_Code')
-    Units_of_Measurement = request.args.get('Units_of_Measurement')
-    if api_key is None:
-        return jsonify(error="Missing API key"), 400
-
-    # Check if the provided API key is valid
-    if api_key not in API_KEYS.values():
-        return jsonify(error="Invalid API key"), 403
-    else:
-        if Case_No is None:
-            all_lab = LAB.query.order_by(
-                LAB.Reported_Date.desc(), LAB.Lab_Resulted_Order_Test_Description).all()
-        else:
-            all_lab = LAB.query.filter_by(Case_No=Case_No).order_by(
-                LAB.Reported_Date.desc(), LAB.Lab_Resulted_Order_Test_Description)
-        if Patient_ID is not None:
-            all_lab = all_lab.filter_by(Patient_ID=Patient_ID).order_by(
-                LAB.Reported_Date.desc(), LAB.Lab_Resulted_Order_Test_Description)
-        if Institution_Code is not None:
-            all_lab = all_lab.filter_by(Institution_Code=Institution_Code).order_by(
-                LAB.Reported_Date.desc(), LAB.Lab_Resulted_Order_Test_Description)
-        if Lab_Test_Code is not None:
-            all_lab = all_lab.filter_by(Lab_Test_Code=Lab_Test_Code).order_by(
-                LAB.Reported_Date.desc(), LAB.Lab_Resulted_Order_Test_Description)
-        if Lab_Resulted_Order_Test_Code is not None:
-            all_lab = all_lab.filter_by(
-                Lab_Resulted_Order_Test_Code=Lab_Resulted_Order_Test_Code).order_by(LAB.Reported_Date.desc(), LAB.Lab_Resulted_Order_Test_Description)
-        if Units_of_Measurement is not None:
-            all_lab = all_lab.filter_by(
-                Units_of_Measurement=Units_of_Measurement).order_by(LAB.Reported_Date.desc(), LAB.Lab_Resulted_Order_Test_Description)
-        result = labs_schema.dump(all_lab)
-        return jsonify(result)
-
-
-@app.route('/drugs', methods=['GET'])
-def get_drugs():
-    api_key = request.headers.get('x-api-key')
-   # fetch authentication api_key value from request as api_key
-    Case_No = request.args.get('Case_No')
-    Patient_ID = request.args.get('Patient_ID')
-    Institution_Code = request.args.get('Institution_Code')
-    Drug_Name = request.args.get('Drug_Name')
-    Generic_Drug_Name = request.args.get(
-        'Generic_Drug_Name')
-    Discharge_Indicator = request.args.get('Discharge_Indicator')
-    if api_key is None:
-        return jsonify(error="Missing API key"), 400
-
-    # Check if the provided API key is valid
-    if api_key not in API_KEYS.values():
-        return jsonify(error="Invalid API key"), 403
-    else:
-        if Case_No is None:
-            all_drug = DRUG.query.order_by(
-                DRUG.Drug_Dispensed_Date_To.desc(), DRUG.Generic_Drug_Name).all()
-        else:
-            all_drug = DRUG.query.filter_by(Case_No=Case_No).order_by(
-                DRUG.Drug_Dispensed_Date_To.desc(), DRUG.Generic_Drug_Name)
-        if Patient_ID is not None:
-            all_drug = all_drug.filter_by(Patient_ID=Patient_ID).order_by(
-                DRUG.Drug_Dispensed_Date_To.desc(), DRUG.Generic_Drug_Name)
-        if Institution_Code is not None:
-            all_drug = all_drug.filter_by(Institution_Code=Institution_Code).order_by(
-                DRUG.Drug_Dispensed_Date_To.desc(), DRUG.Generic_Drug_Name)
-        if Drug_Name is not None:
-            all_drug = all_drug.filter_by(Drug_Name=Drug_Name).order_by(
-                DRUG.Drug_Dispensed_Date_To.desc(), DRUG.Generic_Drug_Name)
-        if Generic_Drug_Name is not None:
-            all_drug = all_drug.filter_by(
-                Generic_Drug_Name=Generic_Drug_Name).order_by(DRUG.Drug_Dispensed_Date_To.desc(), DRUG.Generic_Drug_Name)
-        if Discharge_Indicator is not None:
-            all_drug = all_drug.filter_by(
-                Discharge_Indicator=Discharge_Indicator).order_by(DRUG.Drug_Dispensed_Date_To.desc(), DRUG.Generic_Drug_Name)
-        result = drugs_schema.dump(all_drug)
-        return jsonify(result)
-
-
-@app.route('/radiology', methods=['GET'])
-def get_radiology():
-    api_key = request.headers.get('x-api-key')
-   # fetch authentication api_key value from request as api_key
-    Case_No = request.args.get('Case_No')
-    Institution_Code = request.args.get('Institution_Code')
-    Order_Name = request.args.get('Order_Name')
-    Procedure_Name = request.args.get(
-        'Procedure_Name')
-    if api_key is None:
-        return jsonify(error="Missing API key"), 400
-
-    # Check if the provided API key is valid
-    if api_key not in API_KEYS.values():
-        return jsonify(error="Invalid API key"), 403
-    else:
-        if Case_No is None:
-            all_rads = Radiology.query.order_by(
-                Radiology.Exam_Start_Date.desc(), Radiology.Order_Name).all()
-        else:
-            all_rads = Radiology.query.filter_by(Case_No=Case_No).order_by(
-                Radiology.Exam_Start_Date.desc(), Radiology.Order_Name)
-        if Institution_Code is not None:
-            all_rads = all_rads.filter_by(Institution_Code=Institution_Code).order_by(
-                Radiology.Exam_Start_Date.desc(), Radiology.Order_Name)
-        if Order_Name is not None:
-            all_rads = all_rads.filter_by(Order_Name=Order_Name).order_by(
-                Radiology.Exam_Start_Date.desc(), Radiology.Order_Name)
-        if Procedure_Name is not None:
-            all_rads = all_rads.filter_by(
-                Procedure_Name=Procedure_Name).order_by(Radiology.Exam_Start_Date.desc(), Radiology.Order_Name)
-        result = rads_schema.dump(all_rads)
-        return jsonify(result)
-
-# Create Post route called /generate to call azure open ai api to ask question and get answer. Use deployment shhqllm01
-
-
-@app.route('/generate', methods=['POST'])
-def get_openai_response():
-    user_message = request.json.get('prompt')
-    response = openai.ChatCompletion.create(
-        # The deployment name you chose when you deployed the GPT-35-Turbo or GPT-4 model.
-        engine="mhdhmllm1",
-        messages=[
-            {"role": "system",
-                "content": "You are medical Assistant that can generate medical reports based on the given patient's medical data."},
-            {"role": "user", "content": user_message}
-        ] , temperature=0.3,top_p=1 
-    )
-    return jsonify(response['choices'][0]['message'])
-
+  
+    except Exception as e:  
+        return Response(str(e), status=500)
+    
+    return Response(stream_with_context(astreamer(response_1.response_gen)), mimetype='text/event-stream') 
 
 # Run Server
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8000)
+
