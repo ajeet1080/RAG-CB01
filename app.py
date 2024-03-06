@@ -81,6 +81,16 @@ search_client = SearchClient(
     query_caption=QueryCaptionType.EXTRACTIVE,  
     query_answer=QueryAnswerType.EXTRACTIVE,  
 )  
+
+search_client_01 = SearchClient(  
+    endpoint=search_service_endpoint,  
+    index_name="book-vector-01",  
+    credential=credential,  
+    semantic_configuration_name="mySemanticConfig",  
+    QueryType=QueryType.SEMANTIC,  
+    query_caption=QueryCaptionType.EXTRACTIVE,  
+    query_answer=QueryAnswerType.EXTRACTIVE,  
+)  
   
 metadata_fields = {  
     "page_label": ("page_label", MetadataIndexFieldType.STRING),  
@@ -138,7 +148,7 @@ vector_store_01 = AzureAISearchVectorStore(
     doc_id_field_key="doc_id",  
     language_analyzer="en.lucene",  
     vector_algorithm_type="exhaustiveKnn",  
-    search_client=search_client,  
+    search_client=search_client_01,  
 )  
   
 storage_context_01 = StorageContext.from_defaults(vector_store=vector_store_01)  
