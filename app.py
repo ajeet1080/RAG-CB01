@@ -98,7 +98,7 @@ metadata_fields = {
 vector_store = AzureAISearchVectorStore(  
     search_or_index_client=index_client,  
     filterable_metadata_field_keys=metadata_fields,  
-    index_name=index_name,  
+    index_name="health-vector-03",  
     index_management=IndexManagement.CREATE_IF_NOT_EXISTS,  
     id_field_key="id",  
     chunk_field_key="chunk",  
@@ -117,16 +117,47 @@ Settings.llm = llm_f
 Settings.embed_model = embed_model  
   
 index0 = VectorStoreIndex([], storage_context=storage_context)  
-index0.storage_context.persist()  
+#index0.storage_context.persist()  
   
 index3 = load_index_from_storage(storage_context)  
-query_engine2 = index3.as_query_engine(streaming=True, similarity_top_k=2)  
+#query_engine2 = index3.as_query_engine(streaming=True, similarity_top_k=2)  
 query_engine1 = index3.as_query_engine(streaming=True, similarity_top_k=2)  
+
+
+#Defining vector store and index for Digital book
+vector_store_01 = AzureAISearchVectorStore(  
+    search_or_index_client=index_client,  
+    filterable_metadata_field_keys=metadata_fields,  
+    index_name="book-vector-01",  
+    index_management=IndexManagement.CREATE_IF_NOT_EXISTS,  
+    id_field_key="id",  
+    chunk_field_key="chunk",  
+    embedding_field_key="embedding",  
+    embedding_dimensionality=1536,  
+    metadata_string_field_key="metadata",  
+    doc_id_field_key="doc_id",  
+    language_analyzer="en.lucene",  
+    vector_algorithm_type="exhaustiveKnn",  
+    search_client=search_client,  
+)  
+  
+storage_context_01 = StorageContext.from_defaults(vector_store=vector_store_01)  
+  
+Settings.llm = llm_f  
+Settings.embed_model = embed_model  
+  
+index_01 = VectorStoreIndex([], storage_context=storage_context_01)  
+#index0.storage_context.persist()  
+  
+index_03 = load_index_from_storage(storage_context_01)  
+#query_engine2 = index3.as_query_engine(streaming=True, similarity_top_k=2)  
+query_engine2 = index_03.as_query_engine(streaming=True, similarity_top_k=2) 
   
   
 @app.route('/llama_search', methods=['POST'])  
 def llama_search():  
-    try:  
+    try: 
+         
         req_body = request.json  
         query = req_body.get('query')  
   
@@ -161,6 +192,45 @@ def llama_search():
         return {"message": str(e)}, 400  
     except Exception as e:  
         return {"message": "An error occurred: " + str(e)}, 500  
+    
+@app.route('/llama_search_01', methods=['POST'])  
+def llama_search_01():  
+    try: 
+         
+        req_body = request.json  
+        query = req_body.get('query')  
+  
+        if not query:  
+            return {"message": "Please pass a query in the request body"}, 400  
+  
+        response_1 = query_engine2.query(query)  
+        metadata_1 = response_1.source_nodes[1].metadata  
+        metadata_2 = response_1.source_nodes[0].metadata  
+        page_label_1 = metadata_1.get("page_label")  
+        page_label_2 = metadata_2.get("page_label")  
+        file_name_1 = metadata_1.get("file_name")  
+        file_name_2 = metadata_2.get("file_name")  
+        content_text_1 = response_1.source_nodes[1].text 
+        content_text_2 = response_1.source_nodes[0].text  
+  
+        def responseStream():  
+            for i in response_1.response_gen:  
+                # yield str(i).encode('utf-8') 
+                yield str(i).encode('utf-8')      
+            # Add metadata values to the response stream  
+            yield f"\npage_label_1: {page_label_1}".encode('utf-8')  
+            yield f"\npage_label_2: {page_label_2}".encode('utf-8')  
+            yield f"\nfile_name_1: {file_name_1}".encode('utf-8')  
+            yield f"\nfile_name_2: {file_name_2}".encode('utf-8')  
+            yield f"\ncontent_text_1: {content_text_1}".encode('utf-8')  
+            yield f"\ncontent_text_2: {content_text_2}".encode('utf-8')  
+  
+        return Response(responseStream() , mimetype="text/event-stream")  
+  
+    except ValueError as e:  
+        return {"message": str(e)}, 400  
+    except Exception as e:  
+        return {"message": "An error occurred: " + str(e)}, 500      
   
   
 if __name__ == '__main__':  

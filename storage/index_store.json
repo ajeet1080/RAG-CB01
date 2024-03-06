@@ -1,1 +1,12 @@
-{"index_store/data": {"78ee979f-491b-40be-8d6a-a1af83344835": {"__type__": "vector_store", "__data__": "{\"index_id\": \"78ee979f-491b-40be-8d6a-a1af83344835\", \"summary\": null, \"nodes_dict\": {}, \"doc_id_dict\": {}, \"embeddings_dict\": {}}"}}}
+{
+  "index_store/data": {
+    "66fed44a-2a39-4899-927d-4148ee498242": {
+      "__type__": "vector_store",
+      "__data__": "{\"index_id\": \"66fed44a-2a39-4899-927d-4148ee498242\", \"summary\": null, \"nodes_dict\": {}, \"doc_id_dict\": {}, \"embeddings_dict\": {}}"
+    },
+    "87ef0044-06ee-4b22-9115-063282f4f775": {
+      "__type__": "vector_store",
+      "__data__": "{\"index_id\": \"87ef0044-06ee-4b22-9115-063282f4f775\", \"summary\": null, \"nodes_dict\": {}, \"doc_id_dict\": {}, \"embeddings_dict\": {}}"
+    }
+  }
+}
