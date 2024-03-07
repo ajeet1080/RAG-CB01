@@ -2,11 +2,8 @@ from flask import Flask, request, Response
 import json  
 from llama_index.core import VectorStoreIndex  
 from azure.search.documents.models import VectorizableTextQuery  
-from llama_index.core.response.notebook_utils import (  
-    display_source_node,  
-    display_response,  
-)  
-from llama_index.llms.azure_openai import AzureOpenAI  
+ 
+from llama_index.llms.azure_openai import AzureOpenAI
 from azure.core.credentials import AzureKeyCredential  
 from llama_index.core.schema import MetadataMode  
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding  
@@ -27,6 +24,10 @@ from azure.search.documents.models import (
     QueryAnswerType  
 )  
 import flask_cors  
+
+from llama_index.core.vector_stores.types import VectorStoreQueryMode
+from llama_index.core import get_response_synthesizer
+from llama_index.core.query_engine import RetrieverQueryEngine
   
 app = Flask(__name__)  
 flask_cors.CORS(app)  
@@ -77,9 +78,9 @@ search_client = SearchClient(
     index_name=index_name,  
     credential=credential,  
     semantic_configuration_name="mySemanticConfig",  
-    QueryType=QueryType.SEMANTIC,  
-    query_caption=QueryCaptionType.EXTRACTIVE,  
-    query_answer=QueryAnswerType.EXTRACTIVE,  
+   # QueryType=QueryType.SEMANTIC,  
+   # query_caption=QueryCaptionType.EXTRACTIVE,  
+   # query_answer=QueryAnswerType.EXTRACTIVE,  
 )  
 
 search_client_01 = SearchClient(  
@@ -87,9 +88,9 @@ search_client_01 = SearchClient(
     index_name="book-vector-01",  
     credential=credential,  
     semantic_configuration_name="mySemanticConfig",  
-    QueryType=QueryType.SEMANTIC,  
-    query_caption=QueryCaptionType.EXTRACTIVE,  
-    query_answer=QueryAnswerType.EXTRACTIVE,  
+   # QueryType=QueryType.SEMANTIC,  
+   ## query_caption=QueryCaptionType.EXTRACTIVE,  
+  #  query_answer=QueryAnswerType.EXTRACTIVE,  
 )  
   
 metadata_fields = {  
@@ -129,9 +130,21 @@ Settings.embed_model = embed_model
 index0 = VectorStoreIndex([], storage_context=storage_context)  
 #index0.storage_context.persist()  
   
-index3 = load_index_from_storage(storage_context)  
+index3 = load_index_from_storage(storage_context) 
+
+hybrid_retriever = index3.as_retriever(
+    vector_store_query_mode=VectorStoreQueryMode.SEMANTIC_HYBRID
+)
+
+response_synthesizer = get_response_synthesizer(streaming=True)
+
+hybrid_query_engine = RetrieverQueryEngine(
+    retriever=hybrid_retriever,
+    response_synthesizer=response_synthesizer,
+
+)
 #query_engine2 = index3.as_query_engine(streaming=True, similarity_top_k=2)  
-query_engine1 = index3.as_query_engine(streaming=True, similarity_top_k=2)  
+#query_engine1 = index3.as_query_engine(streaming=True, similarity_top_k=2)  
 
 
 #Defining vector store and index for Digital book
@@ -161,7 +174,20 @@ index_01 = VectorStoreIndex([], storage_context=storage_context_01)
   
 index_03 = load_index_from_storage(storage_context_01)  
 #query_engine2 = index3.as_query_engine(streaming=True, similarity_top_k=2)  
-query_engine2 = index_03.as_query_engine(streaming=True, similarity_top_k=2) 
+#query_engine2 = index_03.as_query_engine(streaming=True, similarity_top_k=2) 
+
+hybrid_retriever_01 = index_03.as_retriever(
+    vector_store_query_mode=VectorStoreQueryMode.SEMANTIC_HYBRID
+
+)
+
+response_synthesizer_01 = get_response_synthesizer(streaming=True)
+
+hybrid_query_engine_01 = RetrieverQueryEngine(
+    retriever=hybrid_retriever_01,
+    response_synthesizer=response_synthesizer_01,
+
+)
   
   
 @app.route('/llama_search', methods=['POST'])  
@@ -174,7 +200,7 @@ def llama_search():
         if not query:  
             return {"message": "Please pass a query in the request body"}, 400  
   
-        response_1 = query_engine1.query(query)  
+        response_1 = hybrid_query_engine.query(query)  
         metadata_1 = response_1.source_nodes[1].metadata  
         metadata_2 = response_1.source_nodes[0].metadata  
         page_label_1 = metadata_1.get("page_label")  
@@ -213,7 +239,7 @@ def llama_search_01():
         if not query:  
             return {"message": "Please pass a query in the request body"}, 400  
   
-        response_1 = query_engine2.query(query)  
+        response_1 = hybrid_query_engine_01.query(query)  
         metadata_1 = response_1.source_nodes[1].metadata  
         metadata_2 = response_1.source_nodes[0].metadata  
         page_label_1 = metadata_1.get("page_label")  
